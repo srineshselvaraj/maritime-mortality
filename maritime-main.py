@@ -14,6 +14,7 @@ for c in md.columns:
     else:
         md = md.rename(columns={c : c.replace("_age_", " ")[:-1].upper()})
 
+#method using data table
 def get_data(year, age, gender):
     # checking to see if the inputs follow the conditions
     b_year, b_age, b_gender = True, True, True
@@ -73,9 +74,10 @@ def get_data(year, age, gender):
             ans = round(col.iloc[int(year) - 1900] * 100, 3)
             tab1.write("There is a "+str(ans)+"% chance that someone would die in a maritime disaster if they were a "+gender+" "+age+" year old in the year "+year+".")
 
+st.markdown("<h2 style='text-align: center;'>Maritime Mortality</h2>", unsafe_allow_html=True)
 tab1, tab2 = st.tabs(["Data", "Graph"])
 with tab1:
-    st.markdown("<h2 style='text-align: center;'>Maritime Mortality</h2>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center;'>Enter a year, age and/or gender to see the probability that a person with those parameters would die to a maritime disaster.</h5>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         year = st.text_input('Year')
@@ -87,4 +89,4 @@ with tab1:
         c1, c2, c3 = st.columns((1, 3, 1))
         with c2:
             st.markdown("<style> button {align-items: bottom} </style>", unsafe_allow_html=True)
-            st.button('Predict', on_click=get_data, args=(year, age, gender))
+            st.button('Find', on_click=get_data, args=(year, age, gender))
