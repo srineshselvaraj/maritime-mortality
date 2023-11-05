@@ -1,7 +1,7 @@
 # necessary libraries
 import numpy as np
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import streamlit as st
 
 # reading in the file
@@ -14,7 +14,7 @@ for c in md.columns:
     else:
         md = md.rename(columns={c : c.replace("_age_", " ")[:-1].upper()})
 
-#method using data table
+#function using dataset
 def get_data(year, age, gender):
     # checking to see if the inputs follow the conditions
     b_year, b_age, b_gender = True, True, True
@@ -74,6 +74,38 @@ def get_data(year, age, gender):
             ans = round(col.iloc[int(year) - 1900] * 100, 3)
             tab1.write("There is a "+str(ans)+"% chance that someone would die in a maritime disaster if they were a "+gender+" "+age+" year old in the year "+year+".")
 
+def get_graph(type, x_axis):
+    if x_axis == "Year":
+        means = md.iloc[:, 1:].mean(axis=1).to_frame()
+        means.columns = ['PROBABILITY']
+        points = pd.concat([md.iloc[:, 0], means], axis=1)
+    elif x_axis == 'Age':
+        means = md.mean()
+        ages = []
+        point = []
+        for a in range(81):
+            ages.append(a)
+            point.append((means.loc[str(a)+" MALE"] + means.loc[str(a)+" FEMALE"]) / 2)
+        points = pd.DataFrame(list(zip(ages, point)))
+        points.columns = ['AGE', 'PROBABILITY']
+    elif x_axis == 'Gender':
+        means = md.mean()
+        mean1 = means.loc["0 MALE" : "80 MALE"]
+        mean2 = means.loc["0 FEMALE" : "80 FEMALE"]
+        genders = ['MALE', 'FEMALE']
+        mean = [mean1.mean(), mean2.mean()]
+        points = pd.DataFrame(list(zip(genders, mean)))
+        points.columns = ['GENDER', 'PROBABILITY']
+    fig, ax = plt.subplots()
+    plt.xlabel(x_axis)
+    plt.ylabel('Probability')
+    if type == 'Bar Graph':
+        ax.bar(points[x_axis.upper()], points['PROBABILITY'])
+    elif type == 'Line Graph':
+        ax.plot(points[x_axis.upper()], points['PROBABILITY'])
+    tab2.pyplot(fig)
+
+# website UI
 st.markdown("<h2 style='text-align: center;'>Maritime Mortality</h2>", unsafe_allow_html=True)
 tab1, tab2 = st.tabs(["Data", "Graph"])
 with tab1:
@@ -90,3 +122,16 @@ with tab1:
         with c2:
             st.markdown("<style> button {align-items: bottom} </style>", unsafe_allow_html=True)
             st.button('Find', on_click=get_data, args=(year, age, gender))
+
+with tab2:
+    st.markdown("<h5 style='text-align: center;'>Choose a type of graph and a parameter to see the trend of the probability of dying in a maritime disaster.</h5>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        type = st.selectbox("Type of Graph", ["Bar Graph", "Line Graph"])
+    with col2:
+        x_axis = st.selectbox("X-axis", ["Year", "Age", "Gender"])
+    with col3:
+        c1, c2, c3 = st.columns((1, 3, 1))
+        with c2:
+            st.markdown("<style> button {align-items: bottom} </style>", unsafe_allow_html=True)
+            st.button('Graph', on_click=get_graph, args=(type, x_axis))
