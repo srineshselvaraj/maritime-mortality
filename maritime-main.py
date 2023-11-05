@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
 
 # reading in the file
 md = pd.read_csv("maritimedeaths.csv")
@@ -72,7 +75,7 @@ def get_data(year, age, gender):
         else: #based on all three parameters
             col = md[age+" "+gender.upper()]
             ans = round(col.iloc[int(year) - 1900] * 100, 3)
-            tab1.write("There is a "+str(ans)+"% chance that someone would die in a maritime disaster if they were a "+gender+" "+age+" year old in the year "+year+".")
+            tab1.write("There is a "+str(ans)+"% chance that someone would die in a maritime disaster if they were a "+gender.lower()+" "+age+" year old in the year "+year+".")
 
 def get_graph(type, x_axis):
     if x_axis == "Year":
@@ -106,9 +109,38 @@ def get_graph(type, x_axis):
         ax.plot(points[x_axis.upper()], points['PROBABILITY'], "c.-")
     tab2.pyplot(fig)
 
+def get_model(year, age, gender):
+    if year == "" or not year.isnumeric() or age == "" or not age.isnumeric() or gender == "" or (gender.upper() != 'MALE' and gender.upper() != 'FEMALE'):
+        tab3.write("Make sure every category is filled in, year and age are numbers, and gender is male or female.")
+    else:
+        if gender.upper() == 'MALE':
+            data = md.iloc[:, 0:82]
+            years = data.iloc[:, 0]
+            ages = data.columns[1:]
+            probs = data.iloc[:, 1:]
+            X = np.array([[int(y), int(a[:-5])] for y in years for a in ages])
+            y = probs.to_numpy().flatten()
+        elif gender.upper() == 'FEMALE':
+            data = pd.concat([md.iloc[:, 0], md.iloc[:, 82:]], axis=1)
+            years = data.iloc[:, 0]
+            ages = data.columns[1:]
+            probs = data.iloc[:, 1:]
+            X = np.array([[int(y), int(a[:-7])] for y in years for a in ages])
+            y = probs.to_numpy().flatten()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+        model = RandomForestRegressor(n_estimators=100, random_state=1)
+        model.fit(X_train, y_train)
+        input = [[year, age]]
+        input_prediction = model.predict(input)
+        ans = round(input_prediction[0] * 100, 3)
+        tab3.write("For a "+age+" year old "+gender.lower()+" in the year "+year+", it is predicted that there is a "+str(ans)+"% chance that they will die due to a maritime disaster.")
+        test_prediction = model.predict(X_test)
+        mae = mean_absolute_error(y_test, test_prediction)
+        tab3.write("The mean absolute error of this model is "+str(mae))
+        
 # website UI
 st.markdown("<h2 style='text-align: center;'>Maritime Mortality</h2>", unsafe_allow_html=True)
-tab1, tab2 = st.tabs(["Data", "Graph"])
+tab1, tab2, tab3 = st.tabs(["Data", "Graph", "Model"])
 with tab1:
     st.markdown("<h5 style='text-align: center;'>Enter some or all of the parameters year, age and gender to see the probability that a person with those parameters would die to a maritime disaster.</h5>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
@@ -136,3 +168,18 @@ with tab2:
         with c2:
             st.markdown("<style> button {align-items: bottom} </style>", unsafe_allow_html=True)
             st.button('Graph', on_click=get_graph, args=(type, x_axis))
+
+with tab3:
+    st.markdown("<h5 style='text-align: center;'>Enter any valid value for each parameter, and a machine learning model will predict the chance that a person with those parameters will die in a maritime disaster.</h5>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        n_year = st.text_input('Year:')
+    with col2:
+        n_age = st.text_input('Age:')
+    with col3:
+        n_gender = st.text_input('Gender:')
+    with col4: 
+        c1, c2, c3 = st.columns((1, 3, 1))
+        with c2:
+            st.markdown("<style> button {align-items: bottom} </style>", unsafe_allow_html=True)
+            st.button('Predict', on_click=get_model, args=(n_year, n_age, n_gender))
