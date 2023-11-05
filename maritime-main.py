@@ -23,15 +23,15 @@ def get_data(year, age, gender):
     b_year, b_age, b_gender = True, True, True
     if year != "":
         if not year.isnumeric() or int(year) < 1900 or int(year) > 2010:
-            tab1.write("The year must be an integer between 1900 and 2010 (inclusive)")
+            tab1.write("The year must be an integer between 1900 and 2010 (inclusive).")
             b_year = False
     if age != "":
         if not age.isnumeric() or int(age) < 0 or int(age) > 80:
-            tab1.write("The age must be an integer between 0 and 80 (inclusive)")
+            tab1.write("The age must be an integer between 0 and 80 (inclusive).")
             b_age = False
     if gender != "":
         if gender.upper() != 'MALE' and gender.upper() != 'FEMALE':
-            tab1.write("The gender must be male or female")
+            tab1.write("The gender must be male or female.")
             b_gender = False
     # if they are correct inputs
     if b_year and b_age and b_gender:
