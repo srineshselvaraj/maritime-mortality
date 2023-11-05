@@ -99,17 +99,18 @@ def get_graph(type, x_axis):
     fig, ax = plt.subplots()
     plt.xlabel(x_axis)
     plt.ylabel('Probability')
+    plt.style.use("dark_background")
     if type == 'Bar Graph':
-        ax.bar(points[x_axis.upper()], points['PROBABILITY'])
+        ax.bar(points[x_axis.upper()], points['PROBABILITY'], color="cyan")
     elif type == 'Line Graph':
-        ax.plot(points[x_axis.upper()], points['PROBABILITY'])
+        ax.plot(points[x_axis.upper()], points['PROBABILITY'], "c.-")
     tab2.pyplot(fig)
 
 # website UI
 st.markdown("<h2 style='text-align: center;'>Maritime Mortality</h2>", unsafe_allow_html=True)
 tab1, tab2 = st.tabs(["Data", "Graph"])
 with tab1:
-    st.markdown("<h5 style='text-align: center;'>Enter a year, age and/or gender to see the probability that a person with those parameters would die to a maritime disaster.</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center;'>Enter some or all of the parameters year, age and gender to see the probability that a person with those parameters would die to a maritime disaster.</h5>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         year = st.text_input('Year')
@@ -124,7 +125,7 @@ with tab1:
             st.button('Find', on_click=get_data, args=(year, age, gender))
 
 with tab2:
-    st.markdown("<h5 style='text-align: center;'>Choose a type of graph and a parameter to see the trend of the probability of dying in a maritime disaster.</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center;'>Choose a type of graph and a parameter to see the trend of the probability of dying in a maritime disaster based on the parameter.</h5>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
         type = st.selectbox("Type of Graph", ["Bar Graph", "Line Graph"])
